@@ -1,6 +1,6 @@
 # open-swiss-plates
 
-# PARSER 1
+# PARSER 1 (CODENAME: KYBERNA)
 
 **(SCRAPING)**
 
@@ -14,7 +14,7 @@ BE: https://www.auktion-be.ch/en/
 
 TG: https://www.auktion.tg.ch/en/
 
-# PARSER 2
+# PARSER 2 (CODENAME: CLASSIC)
 
 **(SCRAPING)**
 
