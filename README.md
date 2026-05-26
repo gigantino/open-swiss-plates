@@ -25,7 +25,7 @@ status so failed or empty sources stay visible:
 {
   "fetchedAt": "2026-05-26T12:00:00.000Z",
   "listings": [ /* Listing[] */ ],
-  "sources": [ { "canton": "GE", "platform": "ricardo", "saleType": "auction", "count": 0, "error": "..." } ]
+  "sources": [ { "canton": "VD", "platform": "kyberna", "saleType": "auction", "count": 0, "error": "..." } ]
 }
 ```
 
@@ -52,15 +52,13 @@ See `types.ts` for the `Listing` and `ScrapeReport` shapes.
 | --- | --- |
 | kyberna | VD, AG, ZH, BE, TG, SH |
 | ecari | AR, BL, FR, GR, NW, OW, SG, SO, SZ, VS, TI |
-| ricardo | GE, JU, NE |
 | eschild | GL |
 
 The kyberna and ecari listings are server-rendered, so those parsers fetch HTML.
-ricardo is behind Cloudflare and eschild is WAF-protected, so both drive a
-headless browser through puppeteer.
+eschild is WAF-protected, so it drives a headless browser through puppeteer.
 
-AI, BS, LU and UR sell from offline lists with no online source. ZG has a
-platform set up but it is not live yet.
+AI, BS, GE, JU, LU, NE, UR and ZG have no online source, so they report a
+uniform "No online source." note and no listings.
 
 ## License
 

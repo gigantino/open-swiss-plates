@@ -10,6 +10,8 @@ export interface CantonConfig {
   insecureTLS?: boolean;
 }
 
+const NO_SOURCE = "No online source.";
+
 // Cantons grouped by the platform their road-traffic office uses. A canton
 // without a platform has no online source we can read.
 export const CANTONS: CantonConfig[] = [
@@ -32,16 +34,10 @@ export const CANTONS: CantonConfig[] = [
   { canton: "VS", saleType: "auction", platform: "ecari", url: "https://ecari.vs.ch/ecari-auction/ui/app/init?locale=de_ch" },
   { canton: "TI", saleType: "auction", platform: "ecari", url: "https://www.carieauktion.ti.ch/ecari-auktion/ui/app/init?locale=it_ch" },
 
-  { canton: "GE", saleType: "auction", platform: "ricardo", url: "https://www.ricardo.ch/de/shop/encheres-plaques-ge/offers/" },
-  { canton: "JU", saleType: "auction", platform: "ricardo", url: "https://www.ricardo.ch/fr/shop/OVJ/offers/" },
-  { canton: "NE", saleType: "auction", platform: "ricardo", url: "https://www.ricardo.ch/de/shop/encheres-plaques-ne/offers/" },
-
   { canton: "GL", saleType: "fixed-price", platform: "eschild", url: "https://eschild.gl.ch/" },
 
-  { canton: "AI", saleType: "fixed-price", note: "Sales list at the road-traffic office, no online source." },
-  { canton: "BS", saleType: "fixed-price", note: "Sales list at the road-traffic office, no online source." },
-  { canton: "LU", saleType: "fixed-price", note: "Sales list at the road-traffic office, no online source." },
-  { canton: "UR", saleType: "fixed-price", note: "Sales list at the road-traffic office, no online source." },
-
-  { canton: "ZG", saleType: "none", note: "Online auction provisioned but not yet live." },
+  // Cantons with no online source we can read.
+  ...["AI", "BS", "GE", "JU", "LU", "NE", "UR", "ZG"].map(
+    (canton): CantonConfig => ({ canton, saleType: "none", note: NO_SOURCE }),
+  ),
 ];

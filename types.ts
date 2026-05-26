@@ -1,4 +1,4 @@
-export type Platform = "kyberna" | "ecari" | "ricardo" | "eschild";
+export type Platform = "kyberna" | "ecari" | "eschild";
 
 export type SaleType = "auction" | "fixed-price" | "none";
 

@@ -2,7 +2,6 @@ import { CANTONS, type CantonConfig } from "./registry";
 import type { Listing, CantonResult, Platform, ScrapeReport } from "./types";
 import kyberna from "./parsers/kyberna";
 import classic from "./parsers/classic";
-import ricardo from "./parsers/ricardo";
 import eschild from "./parsers/eschild";
 
 type Parser = (url: string, canton: string, opts?: { insecureTLS?: boolean }) => Promise<Listing[]>;
@@ -10,7 +9,6 @@ type Parser = (url: string, canton: string, opts?: { insecureTLS?: boolean }) =>
 const PARSERS: Record<Platform, Parser> = {
   kyberna,
   ecari: classic,
-  ricardo,
   eschild,
 };
 
