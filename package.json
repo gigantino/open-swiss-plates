@@ -1,7 +1,14 @@
 {
   "name": "open-swiss-plates",
+  "description": "Aggregates Swiss cantonal license plate listings into a single JSON feed.",
+  "version": "0.1.0",
+  "license": "MIT",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "start": "bun run index.ts",
+    "typecheck": "tsc --noEmit"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
@@ -9,6 +16,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "puppeteer": "^21.7.0"
+    "cheerio": "^1.2.0",
+    "puppeteer": "^25.1.0"
   }
 }

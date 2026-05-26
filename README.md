@@ -1,65 +1,67 @@
 # open-swiss-plates
 
-# PARSER 1 (CODENAME: KYBERNA)
+Collects live license plate listings from Swiss cantonal road-traffic offices
+into a single JSON feed. Each canton runs its own platform, so cantons are
+grouped by the platform they use.
 
-**(SCRAPING)**
+## Usage
 
-VD: https://www.encheres-vd.ch/en
+```bash
+bun install
+bun start
+```
 
-AG: https://www.auktion-ag.ch/en/
+`bun start` writes a JSON report to stdout and a per-canton summary to stderr,
+so you can pipe the data:
 
-ZH: https://www.auktion.stva.zh.ch/en/
+```bash
+bun start 2>/dev/null > report.json
+```
 
-BE: https://www.auktion-be.ch/en/
+The report has the fetch time, the flat list of listings, and a per-canton
+status so failed or empty sources stay visible:
 
-TG: https://www.auktion.tg.ch/en/
+```json
+{
+  "fetchedAt": "2026-05-26T12:00:00.000Z",
+  "listings": [ /* Listing[] */ ],
+  "sources": [ { "canton": "GE", "platform": "ricardo", "saleType": "auction", "count": 0, "error": "..." } ]
+}
+```
 
-# PARSER 2 (CODENAME: CLASSIC)
+You can also call it directly:
 
-**(SCRAPING)**
+```ts
+import { scrapeAll, toReport } from "./index";
 
-AR: https://eauktion.ar.ch/ecari-auction/ui/app/init?locale=de_ch
+const results = await scrapeAll(); // one CantonResult per canton
+const report = toReport(results);
+```
 
-BE: https://eauktion.bl.ch/ecari-auction/ui/app/init?locale=de_ch
+See `types.ts` for the `Listing` and `ScrapeReport` shapes.
 
-BL: https://eauktion.bl.ch/ecari-auction/ui/app/init?locale=de_ch
+## Layout
 
-FR: https://adm.appls.fr.ch/ocn/ecari-auction/ui/app/init?locale=de_ch
+- `registry.ts` lists every canton with its platform and URL.
+- `parsers/` has one module per platform, each returning `Listing[]`.
+- `index.ts` runs the parsers and aggregates the results.
 
-GR: https://eauktion.gr.ch/ecari-auction/ui/app/init?locale=it_ch
+## Coverage
 
-NW: https://vsz-eauktion-nw.ilz.info/ecari-auction/ui/app/init?locale=de_ch
+| Platform | Cantons |
+| --- | --- |
+| kyberna | VD, AG, ZH, BE, TG, SH |
+| ecari | AR, BL, FR, GR, NW, OW, SG, SO, SZ, VS, TI |
+| ricardo | GE, JU, NE |
+| eschild | GL |
 
-OW: https://vsz-eauktion-ow.ilz.info/ecari-auction/ui/app/init?locale=de_ch
+The kyberna and ecari listings are server-rendered, so those parsers fetch HTML.
+ricardo is behind Cloudflare and eschild is WAF-protected, so both drive a
+headless browser through puppeteer.
 
-SG: https://egov.stva.sg.ch/ecari-auction/ui/app/init?locale=de_ch
+AI, BS, LU and UR sell from offline lists with no online source. ZG has a
+platform set up but it is not live yet.
 
-SO: https://eauktion.so.ch/ecari-auction/ui/app/init?locale=de_ch
+## License
 
-SZ: https://cariegov.sz.ch/ecari-auction/ui/app/init?locale=de_ch
-
-VS: https://ecari.vs.ch/ecari-auction/ui/app/init?locale=de_ch
-
-# PARSER 3 (Ricardo)
-
-**(DOCS: https://help.ricardo.ch/hc/de/articles/115002970529-Technical-documentation)**
-
-GE: https://www.ricardo.ch/de/shop/encheres-plaques-ge/ratings/
-
-JU: https://www.ricardo.ch/fr/shop/OVJ/offers/
-
-NE: https://www.ricardo.ch/de/shop/encheres-plaques-ne/ratings/
-
-# PARSER 4
-
-**(SCRAPING)**
-
-SH: https://www.auktion-stva.sh.ch/
-
-# FIXED PRICES
-
-AI, BS, GL, LU, UR
-
-# UNKNOWN / GONE
-
-TI, ZG
+MIT

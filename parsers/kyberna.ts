@@ -1,68 +1,53 @@
-import puppeteer from "puppeteer";
+import * as cheerio from "cheerio";
+import type { Listing, VehicleType } from "../types";
+import { fetchHtml, parseAmount, parseInteger, type FetchOptions } from "./http";
 
-type KybernaType = {
-  id: number;
-  canton: string;
-  plateNumber: number;
-  currentBid: number;
-  totalBids: number;
-  endsAt: number | null;
-};
+// ky2help auction sites. The grid is server-rendered, so a plain fetch works.
+// Cars and motorcycles share the same grid and are told apart by the row icon.
+export default async function kyberna(
+  url: string,
+  canton: string,
+  opts?: FetchOptions,
+): Promise<Listing[]> {
+  const html = await fetchHtml(url, opts);
+  const $ = cheerio.load(html);
+  const listings: Listing[] = [];
 
-export type KybernaResponse = Promise<KybernaType[]>;
+  $(".auctions a[href*='/auction/']").each((_, el) => {
+    const $el = $(el);
 
-export default async function kyberna(url: string): KybernaResponse {
-  const browser = await puppeteer.launch({ headless: "new" });
-  const page = await browser.newPage();
-  await page.goto(url);
+    const id = $el.attr("href")?.match(/\/auction\/(\d+)/)?.[1] ?? "";
+    const plate = $el.find(".licence-plate-figcaption").text().trim();
+    const plateNumber = parseInteger(plate.match(/\d[\d'\s]*$/)?.[0] ?? null);
 
-  const selector =
-    "#body > div:nth-child(1) > div > div > div.main-content > div > div > div.auctions.text-center";
+    const icon = $el.find(".plate-type-icon").attr("src") ?? "";
+    const vehicleType = vehicleTypeFromIcon(icon);
 
-  await page.waitForSelector(selector);
-  const elements = await page.$$(`${selector} > a`);
+    const endsAtText = $el.find(".auction-ends-at-text").next().text().trim();
+    const endsAt = Date.parse(endsAtText) || null;
 
-  const response: KybernaType[] = [];
+    listings.push({
+      canton,
+      platform: "kyberna",
+      id,
+      plate,
+      plateNumber,
+      vehicleType,
+      currentBid: parseAmount($el.find(".auction-current-bid").text()),
+      startPrice: null,
+      bidCount: parseInteger($el.find(".auction-number-bids").text()),
+      lastBidder: null,
+      endsAt,
+      source: url,
+    });
+  });
 
-  for (const elementHandle of elements) {
-    const href = await elementHandle.evaluate((el) => el.getAttribute("href"));
+  return listings;
+}
 
-    const idMatch = href.match(/\/auction\/(\d+)/);
-    const id = idMatch ? parseInt(idMatch[1], 10) : 0;
-
-    const titleText = await elementHandle.$eval(
-      ".licence-plate-figcaption",
-      (el) => el.textContent.trim(),
-    );
-
-    const titleMatch = titleText.match(/([A-Z]+)\s+(\d+)/);
-    const canton = titleMatch ? titleMatch[1] : "";
-    const plateNumber = titleMatch ? parseInt(titleMatch[2], 10) : 0;
-
-    const currentBidText = await elementHandle.$eval(
-      ".auction-current-bid",
-      (el) => el.textContent.trim(),
-    );
-
-    const currentBid = parseFloat(currentBidText.replace(/[^\d.]/g, ""));
-
-    const totalBidsText = await elementHandle.$eval(
-      ".auction-number-bids",
-      (el) => el.textContent.trim(),
-    );
-    const endsAtText = await elementHandle.$eval(
-      ".auction-ends-at-text + div",
-      (el) => el.textContent.trim(),
-    );
-
-    const totalBids = parseInt(totalBidsText, 10);
-
-    const endsAtParse = Date.parse(endsAtText);
-    const endsAt = isNaN(endsAtParse) ? null : endsAtParse;
-
-    response.push({ id, canton, plateNumber, currentBid, totalBids, endsAt });
-  }
-
-  await browser.close();
-  return response;
+function vehicleTypeFromIcon(src: string): VehicleType {
+  if (src.includes("motorcycle")) return "motorcycle";
+  if (src.includes("trailer")) return "trailer";
+  if (src.includes("car")) return "car";
+  return null;
 }
